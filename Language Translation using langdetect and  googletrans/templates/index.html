@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Translation App</title>
+</head>
+<body>
+    <h1>Translation App</h1>
+    <form id="translate-form">
+        <label for="sentence">Enter a sentence:</label>
+        <input type="text" id="sentence" name="sentence">
+        <button type="button" id="translate-button">Translate</button>
+    </form>
+    <div id="translation-result"></div>
+    <hr>
+    <h2>Available Languages</h2>
+    <ul id="languages-list"></ul>
+
+    <hr>
+    <h2>Translated DataFrame</h2>
+    <table id="dataframe-table" border="1">
+        <tr>
+            <th>English Text</th>
+            <th>Tamil Text</th>
+        </tr>
+    </table>
+
+    <script>
+        const translateForm = document.getElementById('translate-form');
+        const translateButton = document.getElementById('translate-button');
+        const translationResult = document.getElementById('translation-result');
+        const languagesList = document.getElementById('languages-list');
+        const dataframeTable = document.getElementById('dataframe-table');
+
+        // Translate a sentence
+        translateButton.addEventListener('click', () => {
+            const sentence = document.getElementById('sentence').value;
+            fetch('/translate_sentence', {
+                method: 'POST',
+                body: new URLSearchParams({ sentence }),
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                translationResult.innerText = 'Translated Sentence: ' + data.translated_sentence;
+            });
+        });
+
+        // Fetch and display available languages
+        fetch('/translate_languages')
+            .then(response => response.json())
+            .then(languages => {
+                for (const key in languages) {
+                    const listItem = document.createElement('li');
+                    listItem.textContent = `${key}: ${languages[key]}`;
+                    languagesList.appendChild(listItem);
+                }
+            });
+
+        // Fetch and display translated DataFrame
+        fetch('/translate_dataframe')
+            .then(response => response.json())
+            .then(data => {
+                data.forEach(row => {
+                    const tableRow = document.createElement('tr');
+                    const englishTextCell = document.createElement('td');
+                    const tamilTextCell = document.createElement('td');
+                    englishTextCell.textContent = row['EnglishText'];
+                    tamilTextCell.textContent = row['TamilText'];
+                    tableRow.appendChild(englishTextCell);
+                    tableRow.appendChild(tamilTextCell);
+                    dataframeTable.appendChild(tableRow);
+                });
+            });
+    </script>
+</body>
+</html>
